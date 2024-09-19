@@ -15,10 +15,6 @@ def initialize_server_socket():
 
     return server_socket
 
-def thread_socket(client_socket):
-    while True:
-        pass
-
 def send_command():
     while True:
         command = input("Enter command: ").encode("utf-8")
@@ -34,6 +30,5 @@ def main():
         client_socket, client_address = server_socket.accept()
         clients.append(client_socket)
 
-        _thread.start_new_thread(thread_socket, (client_socket,))
         _thread.start_new_thread(send_command, ())
 main()
