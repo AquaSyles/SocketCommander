@@ -11,7 +11,9 @@ def initialize_client_socket():
     return client_socket, host_address, port
 
 def run_py_command(command):
-    subprocess.run(["python3", f"commands/{command}/{command}.py"])
+
+    command_path = f"{__file__.rsplit('/', 1)[0]}/commands/{command}/{command}.py"
+    subprocess.run(["python3", command_path])
 
 def main():
     client_socket, host_address, port = initialize_client_socket()
