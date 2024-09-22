@@ -12,7 +12,9 @@ def initialize_client_socket():
     return client_socket, host_address, port
 
 def run_py_command(command):
-    command_path = os.path.join(os.path.dirname(__file__), "commands", command, f"{command}.py")
+    command_path = os.path.join(os.path.dirname(__file__), "commands", command, f"{command}.py") # Gets the path of the command file
+    python_version = "python" if os.name == "nt" else "python3" # Needs correct type to run a python file depending on OS
+
     subprocess.run(["python3", command_path])
 
 def main():
