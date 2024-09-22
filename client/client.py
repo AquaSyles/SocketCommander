@@ -1,5 +1,6 @@
 import socket
 import subprocess
+import os
 
 def initialize_client_socket():
 
@@ -11,8 +12,7 @@ def initialize_client_socket():
     return client_socket, host_address, port
 
 def run_py_command(command):
-
-    command_path = f"{__file__.rsplit('/', 1)[0]}/commands/{command}/{command}.py"
+    command_path = os.path.join(os.path.dirname(__file__), "commands", command, f"{command}.py")
     subprocess.run(["python3", command_path])
 
 def main():
