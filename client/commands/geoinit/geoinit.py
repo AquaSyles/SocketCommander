@@ -6,6 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
 import time
+import threading
 
 driver = webdriver.Firefox()
 
@@ -19,8 +20,6 @@ def join_party(driver):
 
     code = "8RC8"
 
-    time.sleep(1)
-    
     code_input_field = WebDriverWait(driver, 5).until(
         EC.visibility_of_element_located((By.XPATH, '/html/body/div/div/div[2]/main/div/div[2]/div/div/div[1]'))
     )
@@ -58,9 +57,17 @@ def main():
         print("Couldn't find ad_save_btn")
     
     join_party(driver)
+    
+    time.sleep(10000)  # Sleep to avoid busy-waiting
 
-    time.sleep(10000)
+def check_running():
+    while True:
+        with open('commands/geoinit/running', 'r') as file:
+            value = file.read().strip()
 
+            if value != '1':
+                driver.close()
+                exit()
+
+threading.Thread(target=check_running, args=()).start()
 main()
-
-driver.close()

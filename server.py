@@ -1,5 +1,5 @@
 import socket
-import _thread
+import threading
 
 clients = []
 
@@ -53,5 +53,5 @@ def main():
         client_socket, client_address = server_socket.accept()
         clients.append(client_socket)
 
-        _thread.start_new_thread(send_command, ())
+        threading.Thread(target=send_command, args=()).start()
 main()

@@ -1,3 +1,2 @@
-import subprocess
-
-subprocess.run(["python3", "commands/geoinit/geoinit.py"])
+with open('commands/geoinit/running', 'w') as file:
+    file.write('0')
