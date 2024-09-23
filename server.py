@@ -15,12 +15,35 @@ def initialize_server_socket():
 
     return server_socket
 
+def ping(client):
+    try:
+        client.send("ping".encode("utf-8"))
+        client.settimeout(1)
+        response = client.recv(1024).decode("utf-8")
+        return response == "pong"
+
+    except (socket.timeout, socket.error):
+        return False
+
 def send_command():
     while True:
         command = input("Enter command: ").encode("utf-8")
+        to_remove = []
+            
         for client in clients:
-            client.sendall(command)
-
+            if not ping(client):
+                to_remove.append(client)
+                client.close()
+            else:
+                try:
+                    client.sendall(command)
+                except socket.error:
+                    to_remove.append(client)
+                    client.close()
+        
+        # Remove clients after processing the command
+        for client in to_remove:
+            clients.remove(client)
 
 def main():
     server_socket = initialize_server_socket()
