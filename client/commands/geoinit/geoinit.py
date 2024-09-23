@@ -7,6 +7,7 @@ from selenium.webdriver.common.keys import Keys
 
 import time
 import threading
+import os
 
 driver = webdriver.Firefox()
 
@@ -61,8 +62,10 @@ def main():
     time.sleep(10000)  # Sleep to avoid busy-waiting
 
 def check_running():
+    running_path = os.path.dirname(__file__) + '/running'
+
     while True:
-        with open('commands/geoinit/running', 'r') as file:
+        with open(running_path, 'r') as file:
             value = file.read().strip()
 
             if value != '1':
