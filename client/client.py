@@ -2,6 +2,7 @@ import socket
 import subprocess
 import os
 import threading
+import pickle
 
 commands_directory_path = os.path.join(os.path.dirname(__file__), "commands")
 
@@ -14,13 +15,20 @@ def initialize_client_socket():
 
     return client_socket, host_address, port
 
-def run_py_command(command):
+def initiate_running_path(running_path, parameters):
+    with open(running_path, 'w') as file:
+        file.write('1\n')
+        file.write(str(parameters))
+
+
+def run_py_command(command, parameters):
     command_path = os.path.join(commands_directory_path, command, f"{command}.py") # Gets the path of the command file
     running_path =  os.path.join(commands_directory_path, command, "running") 
     python_version = "python" if os.name == "nt" else "python3" # Needs correct type to run a python file depending on OS
     
-    with open(running_path, 'w') as file:
-        file.write('1')
+    initiate_running_path(running_path, parameters) # Command is not allowed to run if running if False, which lets us close threads.
+
+   
     subprocess.run([python_version, command_path])
     
 
@@ -33,17 +41,20 @@ def main():
     
     try:
         while True:
-            command = client_socket.recv(1024).decode("utf-8")
+            command = client_socket.recv(1024)
+            command = pickle.loads(command)
 
+            command, parameters = command['command'], command['parameters']
+            
             if command == "ping":
-                client_socket.send("pong".encode("utf-8"))
+                client_socket.send(pickle.dumps("pong"))
 
             elif command == "close":
                 with open(os.path.join(commands_directory_path, "geoinit", "running"), 'w') as file:
                     file.write('0')
 
             else:
-                threading.Thread(target=run_py_command, args=(command,)).start()
+                threading.Thread(target=run_py_command, args=(command, parameters,)).start()
                 
     except KeyboardInterrupt:
         print("Shutting down...")

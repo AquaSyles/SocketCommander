@@ -1,5 +1,6 @@
 import socket
 import threading
+import pickle
 
 clients = []
 
@@ -17,33 +18,43 @@ def initialize_server_socket():
 
 def ping(client):
     try:
-        client.send("ping".encode("utf-8"))
+        command = {'command': "ping", "parameters": []}
+
+        client.send(pickle.dumps(command))
         client.settimeout(1)
-        response = client.recv(1024).decode("utf-8")
-        return response == "pong"
+        response = client.recv(1024)
+
+        if not response:
+            return False
+
+        return pickle.loads(response) == "pong"
 
     except (socket.timeout, socket.error):
         return False
 
 def send_command():
     while True:
-        command = input("Enter command: ").encode("utf-8")
+        command = input("Enter command: ")
+
+        command_list = command.split(" ")
+        command_dict = {"command": command_list[0], "parameters": command_list[1:]}
+        command = pickle.dumps(command_dict)
+        
         to_remove = []
-            
+        
         for client in clients:
-            if not ping(client):
-                to_remove.append(client)
-                client.close()
-            else:
-                try:
-                    client.sendall(command)
-                except socket.error:
+            try:
+                if not ping(client):
                     to_remove.append(client)
-                    client.close()
+                else:
+                    client.sendall(command)
+            except (socket.timeout, socket.error):
+                to_remove.append(client)
         
         # Remove clients after processing the command
         for client in to_remove:
             clients.remove(client)
+            client.close()
 
 def main():
     server_socket = initialize_server_socket()

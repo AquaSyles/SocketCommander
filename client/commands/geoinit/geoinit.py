@@ -61,16 +61,15 @@ def main():
     
     time.sleep(10000)  # Sleep to avoid busy-waiting
 
-def check_running():
+def check_running(driver):
     running_path = os.path.dirname(__file__) + '/running'
 
     while True:
         with open(running_path, 'r') as file:
-            value = file.read().strip()
+            for line in file:
+                if line == '0':
+                    driver.close()
+                    exit()
 
-            if value != '1':
-                driver.close()
-                exit()
-
-threading.Thread(target=check_running, args=()).start()
+threading.Thread(target=check_running, args=(driver,)).start()
 main()
