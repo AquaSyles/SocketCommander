@@ -16,9 +16,9 @@ def initialize_client_socket():
     return client_socket, host_address, port
 
 def initiate_running_path(running_path, parameters):
-    with open(running_path, 'w') as file:
-        file.write('1\n')
-        file.write(str(parameters))
+    with open(os.path.join(commands_directory_path, "geoinit", "config.pkl"), 'wb') as file:
+        config_dict = {'status': 1, 'parameters': parameters}
+        pickle.dump(config_dict, file)
 
 
 def run_py_command(command, parameters):
@@ -50,8 +50,9 @@ def main():
                 client_socket.send(pickle.dumps("pong"))
 
             elif command == "close":
-                with open(os.path.join(commands_directory_path, "geoinit", "running"), 'w') as file:
-                    file.write('0')
+                with open(os.path.join(commands_directory_path, "geoinit", "config.pkl"), 'wb') as file:
+                    config_dict = {'status': 0}
+                    pickle.dump(config_dict, file)
 
             else:
                 threading.Thread(target=run_py_command, args=(command, parameters,)).start()

@@ -8,18 +8,13 @@ from selenium.webdriver.common.keys import Keys
 import time
 import threading
 import os
+import pickle
 
-driver = webdriver.Firefox()
 
-url = "https://www.geoguessr.com"
-driver.get(url)
+def join_party(driver, code):
+    party_url = "https://www.geoguessr.com/join" 
 
-def join_party(driver):
-    party_url = url + "/join"
-
-    driver.get(party_url)
-
-    code = "8RC8"
+    driver.get(party_url) 
 
     code_input_field = WebDriverWait(driver, 5).until(
         EC.visibility_of_element_located((By.XPATH, '/html/body/div/div/div[2]/main/div/div[2]/div/div/div[1]'))
@@ -36,7 +31,15 @@ def join_party(driver):
     )
     name_field.send_keys(name + Keys.ENTER)
 
-def main():
+def main(parameters):
+    driver = webdriver.Firefox()
+
+    url = "https://www.geoguessr.com"
+
+    threading.Thread(target=check_running, args=(driver,)).start()
+
+    driver.get(url)
+
     # Press custom on ads
     try:
         ad_custom_btn = WebDriverWait(driver, 5).until(
@@ -57,19 +60,35 @@ def main():
     except:
         print("Couldn't find ad_save_btn")
     
-    join_party(driver)
+    join_party(driver, parameters[0])
     
-    time.sleep(10000)  # Sleep to avoid busy-waiting
+    time.sleep(10000)
 
 def check_running(driver):
-    running_path = os.path.dirname(__file__) + '/running'
-
     while True:
-        with open(running_path, 'r') as file:
-            for line in file:
-                if line == '0':
+        try:
+            with open(config_path, 'rb') as file:
+                data = pickle.load(file)
+
+                if data['status'] == 0:
                     driver.close()
                     exit()
+        except:
+            pass
 
-threading.Thread(target=check_running, args=(driver,)).start()
-main()
+def get_parameters():
+    with open(config_path, 'rb') as file:
+        data = pickle.load(file)
+        
+        parameters = data['parameters']
+        if parameters:
+            return parameters
+
+        return 0
+
+config_path = os.path.dirname(__file__) + '/config.pkl'
+
+parameters = get_parameters()
+
+if parameters:
+    main(parameters)
