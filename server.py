@@ -27,18 +27,22 @@ class Server:
 
         while True:
             client_socket, client_address = server_socket.accept()
-            clients.append(client_socket)
+            self.clients.append(client_socket)
 
-            threading.Thread(target=send_command, args=()).start()
+            threading.Thread(target=self.send_command, args=()).start()
+
+    def get_command(self):
+        command = input("Enter command: ")
+        command_list = command.split(" ")
+        command_dict = {"command": command_list[0], "parameters": command_list[1:]}
+        command = pickle.dumps(command_dict)
+
+        return command
 
     def send_command(self):
         while True:
-            command = input("Enter command: ")
-
-            command_list = command.split(" ")
-            command_dict = {"command": command_list[0], "parameters": command_list[1:]}
-            command = pickle.dumps(command_dict)
             
+            command = self.get_command()
             to_remove = []
             
             for client in self.clients:
