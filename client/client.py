@@ -16,8 +16,6 @@ class Client:
 
         self.accept_loop()
 
-
-
     def initialize_client_socket(self):
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -29,22 +27,9 @@ class Client:
     def accept_loop(self):
         try:
             while True:
-                command = self.client_socket.recv(1024)
-                print("Ready to receive")
-                command = pickle.loads(command)
+                command, parameters = self.get_command()
 
-                command, parameters = command['command'], command['parameters']
-                
-                if command == "ping":
-                    self.client_socket.send(pickle.dumps("pong"))
-
-                elif command == "close":
-                    with open(os.path.join(self.commands_directory_path, "geoinit", "config.pkl"), 'wb') as file:
-                        config_dict = {'status': 0}
-                        pickle.dump(config_dict, file)
-
-                else:
-                    threading.Thread(target=self.run_py_command, args=(command, parameters,)).start()
+                self.run_command(command, parameters)
                     
         except KeyboardInterrupt:
             print("Shutting down...")
@@ -66,5 +51,24 @@ class Client:
         with open(os.path.join(self.commands_directory_path, command, "config.pkl"), 'wb') as file:
             config_dict = {'status': 1, 'parameters': parameters}
             pickle.dump(config_dict, file)
+
+    def get_command(self):
+        command = self.client_socket.recv(1024)
+        print("Ready to receive")
+        command = pickle.loads(command)
+
+        return command['command'], command['parameters']
+
+    def run_command(self, command, parameters):
+        if command == "ping":
+            self.client_socket.send(pickle.dumps("pong"))
+
+        elif command == "close":
+            with open(os.path.join(self.commands_directory_path, "geoinit", "config.pkl"), 'wb') as file:
+                config_dict = {'status': 0}
+                pickle.dump(config_dict, file)
+
+        else:
+            threading.Thread(target=self.run_py_command, args=(command, parameters,)).start()
 
 client = Client()

@@ -1,6 +1,6 @@
-import pickle
-command = input("Write command: ")
-command = command.split(" ")
-dictionary = {'command': command[0], "parameters": command[1:]}
+import json
 
-print(dictionary)
+with open("client_config.json", "r") as file:
+    content = file.read()
+    content = json.loads(content)
+    print(content["name"])

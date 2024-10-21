@@ -9,9 +9,9 @@ import time
 import threading
 import os
 import pickle
+import json
 
-
-def join_party(driver, code):
+def join_party(driver, code, name):
     party_url = "https://www.geoguessr.com/join" 
 
     driver.get(party_url) 
@@ -24,14 +24,15 @@ def join_party(driver, code):
     for i, letter_field in enumerate(letter_fields):
         letter_field.send_keys(code[i])
 
-    name = "TEST"
+    name = config["name"]
 
     name_field = WebDriverWait(driver, 5).until(
         EC.visibility_of_element_located((By.XPATH, '/html/body/div/div/div[2]/main/div/div[2]/form/div[1]/div/div/input'))
     )
     name_field.send_keys(name + Keys.ENTER)
 
-def main(parameters):
+def main(parameters, config):
+    name = config["name"]
     driver = webdriver.Firefox()
 
     url = "https://www.geoguessr.com"
@@ -60,7 +61,7 @@ def main(parameters):
     except:
         print("Couldn't find ad_save_btn")
     
-    join_party(driver, parameters[0])
+    join_party(driver, parameters[0], name)
     
     time.sleep(10000)
 
@@ -80,15 +81,27 @@ def get_parameters():
     with open(config_path, 'rb') as file:
         data = pickle.load(file)
         
-        parameters = data['parameters']
-        if parameters:
-            return parameters
+        try:
+            parameters = data['parameters']
+            if parameters:
+                return parameters
+        except:
+            print("No parameters")
 
         return 0
 
-config_path = os.path.dirname(__file__) + '/config.pkl'
+def get_config():
+    with open(geoinit_user_config_path, "r") as file:
+        config = json.loads(file.read())
+
+    return config
+
+geoinit_root_path = os.path.dirname(__file__)
+config_path = os.path.join(geoinit_root_path, 'config.pkl')
+geoinit_user_config_path = os.path.join(geoinit_root_path, "geoinit_user_config.json")
 
 parameters = get_parameters()
+config = get_config()
 
 if parameters:
-    main(parameters)
+    main(parameters, config)
